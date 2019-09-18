@@ -1,4 +1,7 @@
-.vscode/
-
+# bin files
 main
 todo
+
+# ide
+.vscode/
+.idea/

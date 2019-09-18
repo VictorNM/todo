@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -17,6 +18,28 @@ type todoForm struct {
 	Title    string `json:"title"`
 	Text     string `json:"text"`
 	Complete bool   `json:"complete"`
+}
+
+func getTodo(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": nil,
+			"error": err,
+		})
+		return
+	}
+
+	if t, ok := db[id]; ok {
+		c.JSON(200, gin.H{
+			"data":  t,
+			"error": nil,
+		})
+		return
+	}
+
+	c.JSON(404, nil)
 }
 
 func createTodo(c *gin.Context) {
@@ -52,6 +75,7 @@ func createTodo(c *gin.Context) {
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
+	r.GET("/todo/:id", getTodo)
 	r.POST("/todos", createTodo)
 
 	return r
