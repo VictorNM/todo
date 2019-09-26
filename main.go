@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -13,19 +13,12 @@ import (
 
 var db = make(map[int]*todo.Todo)
 
-type todoForm struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Text     string `json:"text"`
-	Complete bool   `json:"complete"`
-}
-
 func getTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
 		c.JSON(500, gin.H{
-			"data": nil,
+			"data":  nil,
 			"error": err,
 		})
 		return
@@ -54,9 +47,8 @@ func createTodo(c *gin.Context) {
 		})
 		return
 	}
-	var tf todoForm
-	err = json.Unmarshal(body, &tf)
-	fmt.Println(tf)
+	var t *todo.Todo
+	err = json.Unmarshal(body, &t)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data":  nil,
@@ -65,7 +57,59 @@ func createTodo(c *gin.Context) {
 		return
 	}
 
-	t := todo.New(tf.Title, tf.Text)
+	t = todo.New(t.Title, t.Text)
+	db[t.ID] = t
+	c.JSON(200, gin.H{
+		"data":  t,
+		"error": nil,
+	})
+}
+
+func updateTodo(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"data":  nil,
+			"error": err,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	j := string(body)
+	_ = j
+	defer c.Request.Body.Close()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data":  nil,
+			"error": err,
+		})
+		return
+	}
+
+	t, ok := db[id]
+	if !ok {
+		c.JSON(404, gin.H{
+			"data":  nil,
+			"error": err,
+		})
+		return
+	}
+
+	var t_ *todo.Todo
+	err = json.Unmarshal(body, &t_)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"data":  nil,
+			"error": err,
+		})
+		return
+	}
+
+	t.Title = t_.Title
+	t.Text = t_.Text
+	t.Complete = t_.Complete
+
 	db[t.ID] = t
 	c.JSON(200, gin.H{
 		"data":  t,
@@ -75,13 +119,14 @@ func createTodo(c *gin.Context) {
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
-	r.GET("/todo/:id", getTodo)
+	r.GET("/todos/:id", getTodo)
 	r.POST("/todos", createTodo)
+	r.PUT("/todos/:id", updateTodo)
 
 	return r
 }
 
 func main() {
 	r := setupRouter()
-	r.Run() // listen and serve on 0.0.0.0:8080
+	log.Fatal(r.Run()) // listen and serve on 0.0.0.0:8080
 }
