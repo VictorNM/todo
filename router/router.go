@@ -43,7 +43,7 @@ func createTodo(c *gin.Context) {
 
 	t = todo.New(t.Title, t.Text)
 	db[t.ID] = t
-	response(c, 200, t, nil)
+	response(c, 201, t, nil)
 }
 
 func updateTodo(c *gin.Context) {
@@ -81,6 +81,21 @@ func updateTodo(c *gin.Context) {
 	response(c, 200, t, nil)
 }
 
+func deleteTodo(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response(c, 400, nil, err)
+		return
+	}
+
+	_, ok := db[id]
+	if ok {
+		delete(db, id)
+	}
+
+	response(c, 204, nil, nil)
+}
+
 func response(c *gin.Context, code int, data interface{}, err error) {
 	c.JSON(code, gin.H{
 		"data":  data,
@@ -94,6 +109,7 @@ func Init() *gin.Engine {
 	r.GET("/todos/:id", getTodo)
 	r.POST("/todos", createTodo)
 	r.PUT("/todos/:id", updateTodo)
+	r.DELETE("/todos/:id", deleteTodo)
 
 	return r
 }

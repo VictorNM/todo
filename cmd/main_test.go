@@ -31,7 +31,7 @@ func TestCreateTodo(t *testing.T) {
 
 	res := parse(w.Body)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, 201, w.Code)
 	assert.Equal(t, "hello", res["data"].(map[string]interface{})["title"])
 }
 
@@ -59,6 +59,14 @@ func TestUpdateTodo(t *testing.T) {
 	})
 }
 
+func TestDeleteTodo(t *testing.T) {
+	r := router.Init()
+	post(r, "hello", "world")
+	w := delete(r, 1)
+
+	assert.Equal(t, 204, w.Code)
+}
+
 func get(router *gin.Engine, id int) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	url := fmt.Sprintf("/todos/%d", id)
@@ -83,6 +91,15 @@ func put(router *gin.Engine, id int, title, text string, complete bool) *httptes
 	url := fmt.Sprintf("/todos/%d", id)
 	body := strings.NewReader(fmt.Sprintf(`{"title":"%s","text":"%s","complete":%t}`, title, text, complete))
 	req, _ := http.NewRequest("PUT", url, body)
+	router.ServeHTTP(w, req)
+
+	return w
+}
+
+func delete(router *gin.Engine, id int) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	url := fmt.Sprintf("/todos/%d", id)
+	req, _ := http.NewRequest("DELETE", url, nil)
 	router.ServeHTTP(w, req)
 
 	return w
