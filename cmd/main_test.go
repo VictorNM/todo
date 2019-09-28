@@ -50,7 +50,7 @@ func TestUpdateTodo(t *testing.T) {
 	t.Run("Update todo 404", func(t *testing.T) {
 		r := router.Init()
 		w := post(r, "hello", "world")
-		w = put(r, 2, "goodbye", "world", false)
+		w = put(r, 10, "goodbye", "world", false)
 
 		res := parse(w.Body)
 

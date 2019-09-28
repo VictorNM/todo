@@ -20,65 +20,43 @@ func getTodo(c *gin.Context) {
 	}
 
 	if t, ok := db[id]; ok {
-		c.JSON(200, gin.H{
-			"data":  t,
-			"error": nil,
-		})
+		response(c, 200, t, nil)
 		return
 	}
 
-	c.JSON(404, nil)
+	response(c, 404, nil, errors.New("not found"))
 }
 
 func createTodo(c *gin.Context) {
 	body, err := ioutil.ReadAll(c.Request.Body)
-	j := string(body)
-	_ = j
 	defer c.Request.Body.Close()
 	if err != nil {
-		c.JSON(500, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 400, nil, err)
 		return
 	}
 	var t *todo.Todo
 	err = json.Unmarshal(body, &t)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 400, nil, err)
 		return
 	}
 
 	t = todo.New(t.Title, t.Text)
 	db[t.ID] = t
-	c.JSON(200, gin.H{
-		"data":  t,
-		"error": nil,
-	})
+	response(c, 200, t, nil)
 }
 
 func updateTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(400, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 400, nil, err)
 		return
 	}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
-	j := string(body)
-	_ = j
 	defer c.Request.Body.Close()
 	if err != nil {
-		c.JSON(500, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 400, nil, err)
 		return
 	}
 
