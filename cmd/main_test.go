@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/victornm/todo/router"
+	"github.com/victornm/todo/api"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetTodo(t *testing.T) {
-	r := router.Init()
+	r := api.InitRouter()
 	w := post(r, "hello", "world")
 	w = get(r, 1)
 
@@ -26,7 +26,7 @@ func TestGetTodo(t *testing.T) {
 }
 
 func TestCreateTodo(t *testing.T) {
-	r := router.Init()
+	r := api.InitRouter()
 	w := post(r, "hello", "world")
 
 	res := parse(w.Body)
@@ -37,7 +37,7 @@ func TestCreateTodo(t *testing.T) {
 
 func TestUpdateTodo(t *testing.T) {
 	t.Run("Update todo succeed", func(t *testing.T) {
-		r := router.Init()
+		r := api.InitRouter()
 		w := post(r, "hello", "world")
 		w = put(r, 1, "goodbye", "world", false)
 
@@ -48,7 +48,7 @@ func TestUpdateTodo(t *testing.T) {
 	})
 
 	t.Run("Update todo 404", func(t *testing.T) {
-		r := router.Init()
+		r := api.InitRouter()
 		w := post(r, "hello", "world")
 		w = put(r, 10, "goodbye", "world", false)
 
@@ -60,7 +60,7 @@ func TestUpdateTodo(t *testing.T) {
 }
 
 func TestDeleteTodo(t *testing.T) {
-	r := router.Init()
+	r := api.InitRouter()
 	post(r, "hello", "world")
 	w := delete(r, 1)
 

@@ -1,4 +1,4 @@
-package router
+package api
 
 import (
 	"encoding/json"
@@ -101,16 +101,5 @@ func response(c *gin.Context, code int, data interface{}, err error) {
 		"data":  data,
 		"error": err,
 	})
-}
-
-// Init init router
-func Init() *gin.Engine {
-	r := gin.Default()
-	r.GET("/todos/:id", getTodo)
-	r.POST("/todos", createTodo)
-	r.PUT("/todos/:id", updateTodo)
-	r.DELETE("/todos/:id", deleteTodo)
-
-	return r
 }
 

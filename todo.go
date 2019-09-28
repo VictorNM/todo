@@ -10,7 +10,7 @@ type Todo struct {
 
 var curID = 0
 
-// New todo
+// New Todo
 func New(title string, text string) *Todo {
 	curID++
 	return &Todo{
