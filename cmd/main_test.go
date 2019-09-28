@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/victornm/todo/router"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,9 +15,9 @@ import (
 )
 
 func TestGetTodo(t *testing.T) {
-	router := setupRouter()
-	w := post(router, "hello", "world")
-	w = get(router, 1)
+	r := router.Init()
+	w := post(r, "hello", "world")
+	w = get(r, 1)
 
 	res := parse(w.Body)
 
@@ -25,8 +26,8 @@ func TestGetTodo(t *testing.T) {
 }
 
 func TestCreateTodo(t *testing.T) {
-	router := setupRouter()
-	w := post(router, "hello", "world")
+	r := router.Init()
+	w := post(r, "hello", "world")
 
 	res := parse(w.Body)
 
@@ -35,14 +36,27 @@ func TestCreateTodo(t *testing.T) {
 }
 
 func TestUpdateTodo(t *testing.T) {
-	router := setupRouter()
-	w := post(router, "hello", "world")
-	w = put(router, 1, "goodbye", "world", false)
+	t.Run("Update todo succeed", func(t *testing.T) {
+		r := router.Init()
+		w := post(r, "hello", "world")
+		w = put(r, 1, "goodbye", "world", false)
 
-	res := parse(w.Body)
+		res := parse(w.Body)
 
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "goodbye", res["data"].(map[string]interface{})["title"])
+		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, "goodbye", res["data"].(map[string]interface{})["title"])
+	})
+
+	t.Run("Update todo 404", func(t *testing.T) {
+		r := router.Init()
+		w := post(r, "hello", "world")
+		w = put(r, 2, "goodbye", "world", false)
+
+		res := parse(w.Body)
+
+		assert.Equal(t, 404, w.Code)
+		assert.NotNil(t, res["error"])
+	})
 }
 
 func get(router *gin.Engine, id int) *httptest.ResponseRecorder {

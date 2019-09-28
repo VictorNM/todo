@@ -1,14 +1,12 @@
-package main
+package router
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"log"
-	"strconv"
-
+	"errors"
 	"github.com/gin-gonic/gin"
-
-	"github.com/victornm/todo/model/todo"
+	"github.com/victornm/todo"
+	"io/ioutil"
+	"strconv"
 )
 
 var db = make(map[int]*todo.Todo)
@@ -17,10 +15,7 @@ func getTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
-		c.JSON(500, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 400, nil, err)
 		return
 	}
 
@@ -89,20 +84,14 @@ func updateTodo(c *gin.Context) {
 
 	t, ok := db[id]
 	if !ok {
-		c.JSON(404, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 404, nil, errors.New("not found"))
 		return
 	}
 
 	var t_ *todo.Todo
 	err = json.Unmarshal(body, &t_)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"data":  nil,
-			"error": err,
-		})
+		response(c, 400, nil, err)
 		return
 	}
 
@@ -111,13 +100,18 @@ func updateTodo(c *gin.Context) {
 	t.Complete = t_.Complete
 
 	db[t.ID] = t
-	c.JSON(200, gin.H{
-		"data":  t,
-		"error": nil,
+	response(c, 200, t, nil)
+}
+
+func response(c *gin.Context, code int, data interface{}, err error) {
+	c.JSON(code, gin.H{
+		"data":  data,
+		"error": err,
 	})
 }
 
-func setupRouter() *gin.Engine {
+// Init init router
+func Init() *gin.Engine {
 	r := gin.Default()
 	r.GET("/todos/:id", getTodo)
 	r.POST("/todos", createTodo)
@@ -126,7 +120,3 @@ func setupRouter() *gin.Engine {
 	return r
 }
 
-func main() {
-	r := setupRouter()
-	log.Fatal(r.Run()) // listen and serve on 0.0.0.0:8080
-}
