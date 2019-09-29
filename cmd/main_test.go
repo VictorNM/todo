@@ -39,9 +39,12 @@ func TestUpdateTodo(t *testing.T) {
 	t.Run("Update todo succeed", func(t *testing.T) {
 		r := api.InitRouter()
 		w := post(r, "hello", "world")
-		w = put(r, 1, "goodbye", "world", false)
-
 		res := parse(w.Body)
+		id := res["data"].(map[string]interface{})["id"]
+
+		w = put(r, int(id.(float64)), "goodbye", "world", false)
+
+		res = parse(w.Body)
 
 		assert.Equal(t, 200, w.Code)
 		assert.Equal(t, "goodbye", res["data"].(map[string]interface{})["title"])

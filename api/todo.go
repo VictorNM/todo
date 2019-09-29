@@ -2,16 +2,22 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/victornm/todo"
 	"io/ioutil"
 	"strconv"
 )
 
-var db = make(map[int]*todo.Todo)
+type TodoController struct {
+	repo todo.Repository
+}
 
-func getTodo(c *gin.Context) {
+// NewTodoController constructor
+func NewTodoController(repo todo.Repository) *TodoController {
+	return &TodoController{repo:repo}
+}
+
+func (controller *TodoController) getTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -19,21 +25,22 @@ func getTodo(c *gin.Context) {
 		return
 	}
 
-	if t, ok := db[id]; ok {
-		response(c, 200, t, nil)
-		return
+	t, err := controller.repo.Find(id)
+	if err != nil {
+		response(c, 404, nil, err)
 	}
 
-	response(c, 404, nil, errors.New("not found"))
+	response(c, 200, t, nil)
 }
 
-func createTodo(c *gin.Context) {
+func (controller *TodoController) createTodo(c *gin.Context) {
 	body, err := ioutil.ReadAll(c.Request.Body)
 	defer c.Request.Body.Close()
 	if err != nil {
 		response(c, 400, nil, err)
 		return
 	}
+
 	var t *todo.Todo
 	err = json.Unmarshal(body, &t)
 	if err != nil {
@@ -42,11 +49,16 @@ func createTodo(c *gin.Context) {
 	}
 
 	t = todo.New(t.Title, t.Text)
-	db[t.ID] = t
+	t, err = controller.repo.Create(t)
+	if err != nil {
+		response(c, 400, nil, err)
+		return
+	}
+
 	response(c, 201, t, nil)
 }
 
-func updateTodo(c *gin.Context) {
+func (controller *TodoController) updateTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		response(c, 400, nil, err)
@@ -60,9 +72,9 @@ func updateTodo(c *gin.Context) {
 		return
 	}
 
-	t, ok := db[id]
-	if !ok {
-		response(c, 404, nil, errors.New("not found"))
+	t, err := controller.repo.Find(id)
+	if err != nil {
+		response(c, 404, nil, err)
 		return
 	}
 
@@ -77,22 +89,26 @@ func updateTodo(c *gin.Context) {
 	t.Text = t_.Text
 	t.Complete = t_.Complete
 
-	db[t.ID] = t
+	t, err = controller.repo.Update(t)
+	if err != nil {
+		response(c, 400, nil, err)
+		return
+	}
+
 	response(c, 200, t, nil)
 }
 
-func deleteTodo(c *gin.Context) {
+func (controller *TodoController) deleteTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		response(c, 400, nil, err)
 		return
 	}
 
-	_, ok := db[id]
-	if ok {
-		delete(db, id)
+	err = controller.repo.Delete(id)
+	if err != nil {
+		response(c, 400, nil, err)
 	}
-
 	response(c, 204, nil, nil)
 }
 
