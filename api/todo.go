@@ -17,6 +17,15 @@ func NewTodoController(repo todo.Repository) *TodoController {
 	return &TodoController{repo:repo}
 }
 
+func (controller *TodoController) getTodos(c *gin.Context) {
+	todos, err := controller.repo.FindAll()
+	if err != nil {
+		response(c, 400, nil, err)
+	}
+
+	response(c, 200, todos, nil)
+}
+
 func (controller *TodoController) getTodo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 

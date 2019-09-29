@@ -25,6 +25,14 @@ func TestGetTodo(t *testing.T) {
 	assert.Equal(t, "hello", res["data"].(map[string]interface{})["title"])
 }
 
+func TestGetTodos(t *testing.T) {
+	r := api.InitRouter()
+	w := post(r, "hello", "world")
+	w = getAll(r)
+
+	assert.Equal(t, 200, w.Code)
+}
+
 func TestCreateTodo(t *testing.T) {
 	r := api.InitRouter()
 	w := post(r, "hello", "world")
@@ -68,6 +76,15 @@ func TestDeleteTodo(t *testing.T) {
 	w := delete(r, 1)
 
 	assert.Equal(t, 204, w.Code)
+}
+
+func getAll(router *gin.Engine) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	url := fmt.Sprintf("/todos")
+	req, _ := http.NewRequest("GET", url, nil)
+	router.ServeHTTP(w, req)
+
+	return w
 }
 
 func get(router *gin.Engine, id int) *httptest.ResponseRecorder {
