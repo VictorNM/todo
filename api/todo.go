@@ -21,6 +21,7 @@ func (controller *TodoController) getTodos(c *gin.Context) {
 	todos, err := controller.repo.FindAll()
 	if err != nil {
 		response(c, 400, nil, err)
+		return
 	}
 
 	response(c, 200, todos, nil)
@@ -37,6 +38,7 @@ func (controller *TodoController) getTodo(c *gin.Context) {
 	t, err := controller.repo.Find(id)
 	if err != nil {
 		response(c, 404, nil, err)
+		return
 	}
 
 	response(c, 200, t, nil)
@@ -117,6 +119,7 @@ func (controller *TodoController) deleteTodo(c *gin.Context) {
 	err = controller.repo.Delete(id)
 	if err != nil {
 		response(c, 400, nil, err)
+		return
 	}
 	response(c, 204, nil, nil)
 }
